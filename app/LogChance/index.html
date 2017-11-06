@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Log Chance</title>
+        <link rel="stylesheet" href="themes/YukiFirstTheme.min.css" />
+	<link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
+	<style>
+	 #info {
+	     list-style: none;
+	 }
+	 .info_contents {
+	     color : black;
+	 }
+	 #popup {
+	     width : 280px;
+	     height : 250px;
+	 }
+	 #closebtn {
+	     width : 200px;
+	 }
+	</style>
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+	<script src="./js/jquery.countdown-2.2.0/jquery.countdown.min.js"></script>
+	<script>
+	 $( function() {
+	     $('#res').hide();
+	     $.getJSON('scripts/GetData.php', function(data) {
+		 for(var i in data) {
+		     console.log(data[i].name);
+		     $("#person").append('<option value="' + data[i].name + '">' + data[i].name + '</option>');
+		 }
+	     }).done( function() {
+		 var temp = $("#person");
+		 temp[0].selectIndex=3;
+		 temp.selectmenu("refresh");		 
+		 var obj = {};
+		 obj['name'] = $("#person").val();
+		 $.getJSON('GetInfo.php', obj, function(info) {
+		     $("#name").text("Saize Mate : " + info[0].name);
+		     $("#stock").text("Stock : " + info[0].stock);
+		     $("#wine").text("Wine : " + info[0].wine);
+		 });
+	     });
+	     $("#person").change( function() {
+
+		 var obj = {};
+		 obj['name'] = $(this).val();
+		 $.getJSON('GetInfo.php', obj, function(info) {
+		     $("#name").text("Saize Mate : " + info[0].name);
+		     $("#stock").text("Stock : " + info[0].stock);
+		     $("#wine").text("Wine : " + info[0].wine);
+		 });
+		 $("#LogChance").removeClass("ui-state-disabled");
+	     });
+	     $("#LogChance").click( function() {
+		 var isZero = false;
+		 var checkStock = '';
+		 var obj = {};
+		 obj['name'] = $("#person").val();
+		 $.getJSON('GetInfo.php', obj, function(info) {
+		     checkStock = info[0].stock;
+		     console.log('info : ' + checkStock);
+		     console.log('checkstock : ' + checkStock);
+		     if(checkStock == '0') {
+			 isZero = true;
+			 $('#timecount').hide();
+			 $('#res').css('color', 'red');
+			 $('#res').text('アスペだからストック追加ね。');
+			 $('#res').show();
+			 var obj = {};
+			 obj['name'] = $("#person").val();
+			 $.getJSON('ReduceStock.php', obj, function(info) {
+			     $("#name").text("Saize Mate : " + info[0].name);
+			     $("#stock").text("Stock : " + info[0].stock);
+			     $("#wine").text("Wine : " + info[0].wine);
+			 });
+			 $("#closebtn").removeClass('ui-state-disabled');
+		     }
+
+		 }).done( function() {
+		     if(isZero)
+			 return; 
+		     var countDown = new Date();
+		     var baseSec = countDown.getTime();
+		     var addSec = 3 * 1000;
+		     var targetSec = baseSec + addSec;
+		     var ran = Math.floor((Math.random() * 100000 + 1)) % 2;
+		     console.log(ran);
+		     var mes = '';
+		     if(ran == 0) {
+			 var obj = {};
+			 obj['name'] = $("#person").val();
+			 $.getJSON('AddWine.php', obj, function(info) {
+			     $("#name").text("Saize Mate : " + info[0].name);
+			     $("#stock").text("Stock : " + info[0].stock);
+			     $("#wine").text("Wine : " + info[0].wine);
+			 });
+			 $("#res").css("color", "Red");
+			 $("#res").text('You Are FUCKED!!');
+		     } else if(ran == 1){
+			 var obj = {};
+			 obj['name'] = $("#person").val();
+			 $.getJSON('ReduceStock.php', obj, function(info) {
+			     $("#name").text("Saize Mate : " + info[0].name);
+			     $("#stock").text("Stock : " + info[0].stock);
+			     $("#wine").text("Wine : " + info[0].wine);
+			 });
+			 $("#res").css("color", "Orange");
+			 $("#res").text('Congrats!!');
+		     }
+		     countDown.setTime(targetSec);
+		     $(function() {
+			 console.log('infunction');
+			 console.log(mes);
+			 $('#timecount').countdown(countDown, function(event) {
+			     var sec = '';
+
+			     if(event.strftime('%S') == "03")
+				 sec = '3';
+			     else if(event.strftime('%S') == "02")
+				 sec = '2';
+			     else if(event.strftime('%S') == "01") {
+				 $(this).css('color', 'red');
+				 sec = '1';
+			     }
+			     else {
+				 $(this).hide();
+				 $('#res').show();
+				 $("#closebtn").removeClass('ui-state-disabled');
+			     }
+			     $(this).text(sec);
+			 });
+		     });
+		 });
+
+	     });
+	     $('#closebtn').click( function() {
+		 $("#timecount").css('color', 'black');
+		 $(this).addClass('ui-state-disabled');
+		 $('#timecount').show();
+		 $('#res').hide();
+	     });
+	 });
+	</script>
+    </head>
+    <body>
+	<div data-role="page" data-title="jQuery Mobile">
+	    <center>
+		<div id="popup" data-role="popup" data-dismissible="false">
+		    <div data-role="header">
+			<h1>Log Chance</h1>
+		    </div>
+		    <div role="main" class="ui-content">
+			<div id="result">
+			    <center>
+				<h1 id="timecount"></h1>
+				<h1 id="res"></h1>
+				<a href="#" data-rel="back" id="closebtn" class="ui-btn ui-btn-inline ui-corner-all ui-state-disabled">Close</a>
+			    </center>
+			</div>
+		    </div>
+		</div>
+	    </center>
+	    <div data-role="header">
+		<h1>Log Chance</h1>
+	    </div>
+	    <div role="main" class="ui-content">
+		<label for="person">Challenger : </label>
+		<select id="person" name="person" data-iconpos="right">
+		</select>
+		<ul id="info">
+		    <li id="name" class="info_contents">Saize Mate : </li>
+		    <li id="stock" class="info_contents">Stock : </li>
+		    <li id="wine" class="info_contents"> Wine : </li>
+		</ul>
+		<p><a href="#popup" data-rel="popup" data-transition="pop" id="LogChance" class="ui-btn ui-corner-all ui-btn-icon-left ui-icon-check">LogChance?</a></p>
+		<hr/>
+		<div data-role="controlgroup" data-type="horizontal">
+		    <a href="./ReduceWine.html" class="ui-btn" data-ajax="false">ワイン</a>
+		    <a href="./AddStock.html" class="ui-btn" data-ajax="false">ストック</a>
+		    <a href="./AddMember.html" class="ui-btn" data-ajax="false">メンバー</a>
+		</div>
+
+	    </div>
+	    <div data-role="footer">
+		Copyright 2009-2017, Saize All 
+	    </div>
+	</div>
+    </body>
+</html>

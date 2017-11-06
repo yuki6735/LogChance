@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>jQuery Mobile</title>
+        <link rel="stylesheet" href="themes/YukiFirstTheme.min.css" />
+	<link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
+	<style>
+	 #people {
+	     list-style: none;
+	 }
+	 #popup {
+	     width : 280px;
+	     height : 180px;
+	 }
+	 #closebtn {
+	     width : 200px;
+	 }
+
+	</style>
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+	<script>
+	 $(function() {
+	     
+	     $.getJSON('GetData.php', function(data) {
+		 for(var i in data) {
+		     $("#mates").append('<option value="' + data[i].name + '">' + data[i].name + '</option>');
+		     $("#people").append('<li>' + data[i].name + ' : ' + data[i].stock + '</li>');
+
+		 }
+	     }).done( function() {
+		 var temp = $("#mates");
+		 temp[0].selectIndex=3;
+		 temp.selectmenu("refresh");
+
+	     });
+
+	     $('#mates').change( function() {
+		 $('#AddStock').removeClass('ui-state-disabled');
+	     });
+	     $('#AddStock').click(function() {
+		 var obj = {};
+		 obj['name'] = $("#mates").val();		 
+		 obj['stock'] = $("#stocknum").val();		 
+		 $.getJSON('AddStock.php', obj, function(info) {
+		     
+		     $("#name").text("Saize Mate : " + info[0].name);
+		     $("#num").text("Stock : " + info[0].stock);
+		 }).done( function() {
+		     $("#people").empty();
+		     $("#mates").empty();
+		     $.getJSON('GetData.php', function(data) {
+			 for(var i in data) {
+			     $("#mates").append('<option value="' + data[i].name + '">' + data[i].name + '</option>');
+			     $("#people").append('<li>' + data[i].name + ' : ' + data[i].stock + '</li>');
+			 }
+		     });
+		     $('#closebtn').removeClass('ui-state-disabled');
+		 });
+	     });
+	 });
+
+	</script>
+    </head>
+    <body>
+	<div data-role="page" data-title="jQuery Mobile">
+	    <center>
+		<div id="popup" data-role="popup" data-dismissible="false">
+		    <div data-role="header">
+			<h1>Add Stock</h1>
+		    </div>
+		    <div role="main" class="ui-content">
+			<div id="result">
+			    <center>
+				<div id="name"></div>
+				<div id="num"></div>
+				<a href="#" data-rel="back" id="closebtn" class="ui-btn ui-btn-inline ui-corner-all ui-state-disabled">Close</a>
+			    </center>
+			</div>
+		    </div>
+		</div>
+	    </center>
+	    <div data-role="header">
+		<h1>Add Stock</h1>
+	    </div>
+	    <div role="main" class="ui-content">
+		<label for="mates">増やす人 : </label>
+		<select id="mates" name="mates" data-iconpos="right">
+		</select>
+		<ul id="people">
+		</ul>
+		<label for="stock">追加ストック:</label>
+		<input type="text" id="stocknum">
+		<p><a href="#popup" data-rel="popup" data-transition="pop" id="AddStock" class="ui-btn ui-corner-all ui-btn-icon-left ui-icon-check">増やす</a></p>
+		<a href="index.html" class="ui-btn" data-icon="home" data-ajax="false">Log Chanceへ</a>
+	    </div>
+	    <div data-role="footer">
+		Copyright 2009-2017, Saize All 
+	    </div>
+	</div>
+    </body>
+</html>

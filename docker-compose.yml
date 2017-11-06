@@ -1,0 +1,28 @@
+version: "2"
+
+services:
+  app:
+    build: ./app
+    ports:
+      - "8080:80"
+    links:
+      - db:mysql
+    volumes:
+      - ./app/LogChance:/var/www/html/LogChance
+    command: bash -c "/usr/sbin/httpd -DFOREGROUND"
+  
+  db:
+    build: ./db
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: saize
+      MYSQL_DATABASE: "LogChance"
+    volumes_from:
+      - data
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+
+  data:
+    build: ./data
+
